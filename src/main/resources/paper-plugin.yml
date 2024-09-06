@@ -1,0 +1,8 @@
+name: cia_n
+version: '1.0-SNAPSHOT'
+main: ru.teasanctuary.cia_n.CiaN
+api-version: '1.21'
+prefix: CIA-N
+authors: [ rndtrash ]
+description: A plugin that logs the user interactions in a parsable format.
+website: https://teasanctuary.ru
