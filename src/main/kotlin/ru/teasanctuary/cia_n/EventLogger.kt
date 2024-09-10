@@ -88,13 +88,13 @@ class EventLogger(private val plugin: CiaN) : Listener {
             val arr = arrayOf(player.uniqueId, onlinePlayer.uniqueId).sorted()
             val sortedPair = Pair(arr[0], arr[1])
             val isNearby = playersTogether[sortedPair] ?: false
-            val distance = player.location.distance(onlinePlayer.location)
+            val isInSameWorlds = player.world == onlinePlayer.world
             if (isNearby) {
-                if (onlinePlayer.isDead || distance >= plugin.ciaNConfig.playerVisitPlayerDistance + plugin.ciaNConfig.playerLeavePlayerDistance) {
+                if (onlinePlayer.isDead || !isInSameWorlds || player.location.distance(onlinePlayer.location) >= plugin.ciaNConfig.playerVisitPlayerDistance + plugin.ciaNConfig.playerLeavePlayerDistance) {
                     onPlayersAway(sortedPair)
                 }
             } else {
-                if (distance <= plugin.ciaNConfig.playerVisitPlayerDistance) {
+                if (isInSameWorlds && player.location.distance(onlinePlayer.location) <= plugin.ciaNConfig.playerVisitPlayerDistance) {
                     onPlayersTogether(sortedPair)
                 }
             }
