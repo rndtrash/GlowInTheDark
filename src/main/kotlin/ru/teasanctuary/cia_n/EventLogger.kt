@@ -53,7 +53,7 @@ class EventLogger(private val plugin: CiaN) : Listener {
 
         val maxHealth = victim.getAttribute(Attribute.GENERIC_MAX_HEALTH)
         if (maxHealth != null && victim.health / maxHealth.value <= 0.10) {
-            plugin.pushEvent(CiaPlayerHurtEvent(victim.uniqueId, timestamp))
+            plugin.pushEvent(CiaPlayerLowHealthEvent(victim.uniqueId, timestamp))
         }
     }
 
