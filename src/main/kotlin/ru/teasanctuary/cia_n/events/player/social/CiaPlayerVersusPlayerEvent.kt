@@ -1,4 +1,4 @@
-package ru.teasanctuary.cia_n.events.player.health
+package ru.teasanctuary.cia_n.events.player.social
 
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage

@@ -1,5 +1,6 @@
 package ru.teasanctuary.cia_n
 
+import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.attribute.Attribute
 import org.bukkit.entity.Player
@@ -13,12 +14,14 @@ import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.generator.structure.StructureType
 import ru.teasanctuary.cia_n.events.player.*
 import ru.teasanctuary.cia_n.events.player.health.*
+import ru.teasanctuary.cia_n.events.player.social.*
 import java.util.UUID
 
 class EventLogger(private val plugin: CiaN) : Listener {
     private val pvpTimeouts = mutableMapOf<Pair<UUID, UUID>, Long>()
     private val damageTimeouts = mutableMapOf<UUID, Long>()
     private val structureTimeouts = mutableMapOf<Pair<UUID, StructureType>, Long>()
+    private val playersTogether = mutableMapOf<Pair<UUID, UUID>, Boolean>()
 
     @EventHandler
     fun onPlayerJoin(event: PlayerJoinEvent) {
@@ -27,6 +30,7 @@ class EventLogger(private val plugin: CiaN) : Listener {
 
     @EventHandler
     fun onPlayerQuit(event: PlayerQuitEvent) {
+        cleanUpPlayerTogether(event.player.uniqueId)
         plugin.pushEventServer(CiaPlayerLeaveEvent(event.player.uniqueId, plugin.worldTime))
     }
 
@@ -59,6 +63,7 @@ class EventLogger(private val plugin: CiaN) : Listener {
 
     @EventHandler
     fun onPlayerDeath(event: PlayerDeathEvent) {
+        cleanUpPlayerTogether(event.player.uniqueId)
         plugin.pushEventServer(CiaPlayerDeathEvent(event.player.uniqueId, plugin.worldTime))
     }
 
@@ -68,7 +73,25 @@ class EventLogger(private val plugin: CiaN) : Listener {
         // Нам не интересны наблюдатели и админы
         if (player.gameMode != GameMode.SURVIVAL) return
 
-        // TODO: проверка расстояний между игроками
+        // Проверка расстояний между игроками
+        val onlinePlayers = Bukkit.getOnlinePlayers()
+        for (onlinePlayer in onlinePlayers) {
+            if (onlinePlayer == player) continue
+
+            val arr = arrayOf(player.uniqueId, onlinePlayer.uniqueId).sorted()
+            val sortedPair = Pair(arr[0], arr[1])
+            val isNearby = playersTogether[sortedPair] ?: false
+            val distance = player.location.distance(onlinePlayer.location)
+            if (isNearby) {
+                if (onlinePlayer.isDead || distance >= plugin.ciaNConfig.playerVisitPlayerDistance + plugin.ciaNConfig.playerLeavePlayerDistance) {
+                    onPlayersAway(sortedPair)
+                }
+            } else {
+                if (distance <= plugin.ciaNConfig.playerVisitPlayerDistance) {
+                    onPlayersTogether(sortedPair)
+                }
+            }
+        }
 
         val chunkStructures = event.to.chunk.structures
         val timestamp = plugin.worldTime
@@ -84,6 +107,24 @@ class EventLogger(private val plugin: CiaN) : Listener {
                 )
                 structureTimeouts[kv] = timestamp
             }
+        }
+    }
+
+    private fun onPlayersTogether(pair: Pair<UUID, UUID>) {
+        playersTogether[pair] = true
+        plugin.pushEvent(CiaPlayerNearPlayerEvent(pair.first, pair.second, plugin.worldTime))
+    }
+
+    private fun onPlayersAway(pair: Pair<UUID, UUID>, silent: Boolean = false) {
+        playersTogether[pair] = false
+        val event = CiaPlayerAwayFromPlayerEvent(pair.first, pair.second, plugin.worldTime)
+        if (silent) plugin.pushEventServer(event)
+        else plugin.pushEvent(event)
+    }
+
+    private fun cleanUpPlayerTogether(playerId: UUID) {
+        for ((key, _) in playersTogether) {
+            if (key.first == playerId || key.second == playerId) onPlayersAway(key, true)
         }
     }
 }

@@ -16,29 +16,29 @@ class CiaNConfig(
      */
     val playerVisitPlayerDistance: Int,
     /**
-     * Задержка между сообщениями о приближении одного игрока к другому
+     * Добавочное расстояние между игроками, предотвращающее событие посещения-расхождения от малейшего чиха
      */
-    val playerVisitPlayerDelay: Long
+    val playerLeavePlayerDistance: Int
 ) : ConfigurationSerializable {
     companion object {
         const val DEFAULT_PLAYER_DAMAGE_EVENT_DELAY = 30L
         const val DEFAULT_PLAYER_ENTER_STRUCTURE_DELAY = 60L
         const val DEFAULT_PLAYER_VISIT_PLAYER_DISTANCE = 32 // 2 чанка
-        const val DEFAULT_PLAYER_VISIT_PLAYER_DELAY = 60L
+        const val DEFAULT_PLAYER_LEAVE_PLAYER_DISTANCE = 16 // +1 чанк
     }
 
     constructor(config: Map<String, Object>) : this(
         config["player-damage-event-delay"] as? Long ?: DEFAULT_PLAYER_DAMAGE_EVENT_DELAY,
         config["player-enter-structure-delay"] as? Long ?: DEFAULT_PLAYER_ENTER_STRUCTURE_DELAY,
         config["player-visit-player-distance"] as? Int ?: DEFAULT_PLAYER_VISIT_PLAYER_DISTANCE,
-        config["player-visit-player-delay"] as? Long ?: DEFAULT_PLAYER_VISIT_PLAYER_DELAY
+        config["player-leave-player-distance"] as? Int ?: DEFAULT_PLAYER_LEAVE_PLAYER_DISTANCE
     )
 
     constructor() : this(
         DEFAULT_PLAYER_DAMAGE_EVENT_DELAY,
         DEFAULT_PLAYER_ENTER_STRUCTURE_DELAY,
         DEFAULT_PLAYER_VISIT_PLAYER_DISTANCE,
-        DEFAULT_PLAYER_VISIT_PLAYER_DELAY
+        DEFAULT_PLAYER_LEAVE_PLAYER_DISTANCE
     )
 
     override fun serialize(): MutableMap<String, Any> {
@@ -46,7 +46,7 @@ class CiaNConfig(
             Pair("player-damage-event-delay", playerDamageEventDelay),
             Pair("player-enter-structure-delay", playerEnterStructureDelay),
             Pair("player-visit-player-distance", playerVisitPlayerDistance),
-            Pair("player-visit-player-delay", playerVisitPlayerDelay),
+            Pair("player-leave-player-distance", playerLeavePlayerDistance)
         )
     }
 }
