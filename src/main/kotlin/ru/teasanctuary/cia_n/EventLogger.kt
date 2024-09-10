@@ -10,6 +10,7 @@ import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerMoveEvent
+import org.bukkit.event.player.PlayerPortalEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.generator.structure.StructureType
 import ru.teasanctuary.cia_n.events.player.*
@@ -65,6 +66,12 @@ class EventLogger(private val plugin: CiaN) : Listener {
     fun onPlayerDeath(event: PlayerDeathEvent) {
         cleanUpPlayerTogether(event.player.uniqueId)
         plugin.pushEventServer(CiaPlayerDeathEvent(event.player.uniqueId, plugin.worldTime))
+    }
+
+    @EventHandler
+    fun onPlayerEnterPortal(event: PlayerPortalEvent) {
+        // Произошло перемещение между мирами
+        plugin.pushEvent(CiaPlayerMoveWorldsEvent(event.to.world, event.player.uniqueId, plugin.worldTime))
     }
 
     @EventHandler
