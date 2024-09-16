@@ -3,6 +3,7 @@ package ru.teasanctuary.cia_n
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.attribute.Attribute
+import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -17,6 +18,7 @@ import ru.teasanctuary.cia_n.events.player.*
 import ru.teasanctuary.cia_n.events.player.health.*
 import ru.teasanctuary.cia_n.events.player.social.*
 import java.util.UUID
+import kotlin.math.abs
 
 class EventLogger(private val plugin: CiaN) : Listener {
     private val pvpTimeouts = mutableMapOf<Pair<UUID, UUID>, Long>()
@@ -37,8 +39,13 @@ class EventLogger(private val plugin: CiaN) : Listener {
 
     @EventHandler
     fun onPlayerDamage(event: EntityDamageEvent) {
+        // Событие вызывается для любой сущности, но нас интересуют только игроки
+        if (event.entityType != EntityType.PLAYER) return
         val victim = event.entity as? Player
         if (victim == null || !victim.isValid) return
+
+        // При использовании щита наносится нулевой урон
+        if (abs(event.finalDamage) <= 0.01) return
 
         val timestamp = plugin.worldTime
         val attacker = event.damageSource.causingEntity as? Player
