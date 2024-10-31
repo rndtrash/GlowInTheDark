@@ -9,6 +9,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.entity.PlayerDeathEvent
+import org.bukkit.event.player.PlayerGameModeChangeEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.event.player.PlayerPortalEvent
@@ -76,7 +77,17 @@ class EventLogger(private val plugin: Gitd) : Listener {
     }
 
     @EventHandler
+    fun onPlayerGameModeChange(event: PlayerGameModeChangeEvent) {
+        if (event.newGameMode != GameMode.SURVIVAL) {
+            cleanUpPlayerTogether(event.player.uniqueId)
+        }
+    }
+
+    @EventHandler
     fun onPlayerEnterPortal(event: PlayerPortalEvent) {
+        // Нам не интересны наблюдатели и админы
+        if (event.player.gameMode != GameMode.SURVIVAL) return
+
         // Произошло перемещение между мирами
         plugin.pushEvent(GitdPlayerMoveWorldsEvent(event.to.world, event.player.uniqueId, plugin.worldTime))
     }
