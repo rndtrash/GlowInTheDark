@@ -1,8 +1,8 @@
-name: cia_n
+name: gitd
 version: '1.0-SNAPSHOT'
-main: ru.teasanctuary.cia_n.CiaN
+main: ru.teasanctuary.gitd.Gitd
 api-version: '1.21'
-prefix: CIA-N
+prefix: GITD
 authors: [ rndtrash ]
 description: A plugin that logs the user interactions in a parsable format.
 website: https://teasanctuary.ru

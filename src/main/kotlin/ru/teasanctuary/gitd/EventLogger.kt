@@ -1,4 +1,4 @@
-package ru.teasanctuary.cia_n
+package ru.teasanctuary.gitd
 
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
@@ -14,13 +14,13 @@ import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.event.player.PlayerPortalEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.generator.structure.StructureType
-import ru.teasanctuary.cia_n.events.player.*
-import ru.teasanctuary.cia_n.events.player.health.*
-import ru.teasanctuary.cia_n.events.player.social.*
+import ru.teasanctuary.gitd.events.player.*
+import ru.teasanctuary.gitd.events.player.health.*
+import ru.teasanctuary.gitd.events.player.social.*
 import java.util.UUID
 import kotlin.math.abs
 
-class EventLogger(private val plugin: CiaN) : Listener {
+class EventLogger(private val plugin: Gitd) : Listener {
     private val pvpTimeouts = mutableMapOf<Pair<UUID, UUID>, Long>()
     private val damageTimeouts = mutableMapOf<UUID, Long>()
     private val structureTimeouts = mutableMapOf<Pair<UUID, StructureType>, Long>()
@@ -28,13 +28,13 @@ class EventLogger(private val plugin: CiaN) : Listener {
 
     @EventHandler
     fun onPlayerJoin(event: PlayerJoinEvent) {
-        plugin.pushEventServer(CiaPlayerJoinEvent(event.player.uniqueId, plugin.worldTime))
+        plugin.pushEventServer(GitdPlayerJoinEvent(event.player.uniqueId, plugin.worldTime))
     }
 
     @EventHandler
     fun onPlayerQuit(event: PlayerQuitEvent) {
         cleanUpPlayerTogether(event.player.uniqueId)
-        plugin.pushEventServer(CiaPlayerLeaveEvent(event.player.uniqueId, plugin.worldTime))
+        plugin.pushEventServer(GitdPlayerLeaveEvent(event.player.uniqueId, plugin.worldTime))
     }
 
     @EventHandler
@@ -51,34 +51,34 @@ class EventLogger(private val plugin: CiaN) : Listener {
         val attacker = event.damageSource.causingEntity as? Player
         if (attacker != null && attacker.isValid) {
             val lastTime = pvpTimeouts[attacker.uniqueId to victim.uniqueId]
-            if (lastTime == null || timestamp - lastTime > plugin.ciaNConfig.playerDamageEventDelay * CiaN.REAL_SECONDS_TO_GAME_TIME) {
-                plugin.pushEvent(CiaPlayerVersusPlayerEvent(attacker.uniqueId, victim.uniqueId, timestamp))
+            if (lastTime == null || timestamp - lastTime > plugin.gitdConfig.playerDamageEventDelay * Gitd.REAL_SECONDS_TO_GAME_TIME) {
+                plugin.pushEvent(GitdPlayerVersusPlayerEvent(attacker.uniqueId, victim.uniqueId, timestamp))
                 pvpTimeouts[attacker.uniqueId to victim.uniqueId] = timestamp
             }
         } else {
             val lastTime = damageTimeouts[victim.uniqueId]
-            if (lastTime == null || timestamp - lastTime > plugin.ciaNConfig.playerDamageEventDelay * CiaN.REAL_SECONDS_TO_GAME_TIME) {
-                plugin.pushEvent(CiaPlayerHurtEvent(victim.uniqueId, timestamp))
+            if (lastTime == null || timestamp - lastTime > plugin.gitdConfig.playerDamageEventDelay * Gitd.REAL_SECONDS_TO_GAME_TIME) {
+                plugin.pushEvent(GitdPlayerHurtEvent(victim.uniqueId, timestamp))
                 damageTimeouts[victim.uniqueId] = timestamp
             }
         }
 
         val maxHealth = victim.getAttribute(Attribute.GENERIC_MAX_HEALTH)
         if (maxHealth != null && victim.health / maxHealth.value <= 0.25) {
-            plugin.pushEvent(CiaPlayerLowHealthEvent(victim.uniqueId, timestamp))
+            plugin.pushEvent(GitdPlayerLowHealthEvent(victim.uniqueId, timestamp))
         }
     }
 
     @EventHandler
     fun onPlayerDeath(event: PlayerDeathEvent) {
         cleanUpPlayerTogether(event.player.uniqueId)
-        plugin.pushEventServer(CiaPlayerDeathEvent(event.player.uniqueId, plugin.worldTime))
+        plugin.pushEventServer(GitdPlayerDeathEvent(event.player.uniqueId, plugin.worldTime))
     }
 
     @EventHandler
     fun onPlayerEnterPortal(event: PlayerPortalEvent) {
         // Произошло перемещение между мирами
-        plugin.pushEvent(CiaPlayerMoveWorldsEvent(event.to.world, event.player.uniqueId, plugin.worldTime))
+        plugin.pushEvent(GitdPlayerMoveWorldsEvent(event.to.world, event.player.uniqueId, plugin.worldTime))
     }
 
     @EventHandler
@@ -89,20 +89,20 @@ class EventLogger(private val plugin: CiaN) : Listener {
 
         // Проверка расстояний между игроками
         val onlinePlayers = Bukkit.getOnlinePlayers()
-        for (onlinePlayer in onlinePlayers) {
-            if (onlinePlayer == player) continue
+        for (otherPlayer in onlinePlayers) {
+            if (otherPlayer == player) continue
 
-            val arr = arrayOf(player.uniqueId, onlinePlayer.uniqueId).sorted()
+            val arr = arrayOf(player.uniqueId, otherPlayer.uniqueId).sorted()
             val sortedPair = Pair(arr[0], arr[1])
             val isNearby = playersTogether[sortedPair] ?: false
-            val isInSameWorlds = player.world == onlinePlayer.world
+            val isInSameWorlds = player.world == otherPlayer.world
             if (isNearby) {
-                if (onlinePlayer.isDead || !isInSameWorlds || player.location.distance(onlinePlayer.location) >= plugin.ciaNConfig.playerVisitPlayerDistance + plugin.ciaNConfig.playerLeavePlayerDistance) {
-                    onPlayersAway(sortedPair)
+                if (otherPlayer.isDead || !isInSameWorlds || player.location.distance(otherPlayer.location) >= plugin.gitdConfig.playerVisitPlayerDistance + plugin.gitdConfig.playerLeavePlayerDistance) {
+                    onPlayersAway(player.uniqueId, otherPlayer.uniqueId)
                 }
             } else {
-                if (isInSameWorlds && player.location.distance(onlinePlayer.location) <= plugin.ciaNConfig.playerVisitPlayerDistance) {
-                    onPlayersTogether(sortedPair)
+                if (isInSameWorlds && player.location.distance(otherPlayer.location) <= plugin.gitdConfig.playerVisitPlayerDistance) {
+                    onPlayersTogether(player.uniqueId, otherPlayer.uniqueId)
                 }
             }
         }
@@ -113,9 +113,9 @@ class EventLogger(private val plugin: CiaN) : Listener {
             if (!generatedStructure.boundingBox.contains(player.location.toVector())) continue
             val kv = player.uniqueId to generatedStructure.structure.structureType
             val lastTime = structureTimeouts[kv]
-            if (lastTime == null || timestamp - lastTime > plugin.ciaNConfig.playerEnterStructureDelay * CiaN.REAL_SECONDS_TO_GAME_TIME) {
+            if (lastTime == null || timestamp - lastTime > plugin.gitdConfig.playerEnterStructureDelay * Gitd.REAL_SECONDS_TO_GAME_TIME) {
                 plugin.pushEvent(
-                    CiaPlayerStructureEvent(
+                    GitdPlayerStructureEvent(
                         generatedStructure.structure.structureType, player.uniqueId, timestamp
                     )
                 )
@@ -124,21 +124,29 @@ class EventLogger(private val plugin: CiaN) : Listener {
         }
     }
 
-    private fun onPlayersTogether(pair: Pair<UUID, UUID>) {
-        playersTogether[pair] = true
-        plugin.pushEvent(CiaPlayerNearPlayerEvent(pair.first, pair.second, plugin.worldTime))
+    private fun onPlayersTogether(first: UUID, second: UUID) {
+        val arr = arrayOf(first, second).sorted()
+        val sortedPair = Pair(arr[0], arr[1])
+        if (playersTogether[sortedPair] == true) return
+
+        playersTogether[sortedPair] = true
+        plugin.pushEvent(GitdPlayerNearPlayerEvent(first, second, plugin.worldTime))
     }
 
-    private fun onPlayersAway(pair: Pair<UUID, UUID>, silent: Boolean = false) {
-        playersTogether[pair] = false
-        val event = CiaPlayerAwayFromPlayerEvent(pair.first, pair.second, plugin.worldTime)
+    private fun onPlayersAway(first: UUID, second: UUID, silent: Boolean = false) {
+        val arr = arrayOf(first, second).sorted()
+        val sortedPair = Pair(arr[0], arr[1])
+        if (playersTogether[sortedPair] == false) return
+
+        playersTogether[sortedPair] = false
+        val event = GitdPlayerAwayFromPlayerEvent(first, second, plugin.worldTime)
         if (silent) plugin.pushEventServer(event)
         else plugin.pushEvent(event)
     }
 
     private fun cleanUpPlayerTogether(playerId: UUID) {
         for ((key, _) in playersTogether) {
-            if (key.first == playerId || key.second == playerId) onPlayersAway(key, true)
+            if (key.first == playerId || key.second == playerId) onPlayersAway(key.first, key.second, true)
         }
     }
 }

@@ -1,4 +1,4 @@
-package ru.teasanctuary.cia_n
+package ru.teasanctuary.gitd
 
 import org.bukkit.Bukkit
 import org.bukkit.World
@@ -7,13 +7,13 @@ import org.bukkit.event.HandlerList
 import org.bukkit.permissions.Permission
 import org.bukkit.permissions.PermissionDefault
 import org.bukkit.plugin.java.JavaPlugin
-import ru.teasanctuary.cia_n.config.CiaNConfig
-import ru.teasanctuary.cia_n.events.BaseCiaEvent
-import ru.teasanctuary.cia_n.events.server.CiaServerStartEvent
-import ru.teasanctuary.cia_n.events.server.CiaServerStopEvent
+import ru.teasanctuary.gitd.config.GitdConfig
+import ru.teasanctuary.gitd.events.BaseGitdEvent
+import ru.teasanctuary.gitd.events.server.GitdServerStartEvent
+import ru.teasanctuary.gitd.events.server.GitdServerStopEvent
 import java.util.logging.Level
 
-class CiaN : JavaPlugin() {
+class Gitd : JavaPlugin() {
     companion object {
         /**
          * Преобразование реальных секунд к игровым.
@@ -27,7 +27,7 @@ class CiaN : JavaPlugin() {
      * Разрешение на получение логов. По-умолчанию сообщения отправляются всем операторам в сети, а также
      * на консоль сервера.
      */
-    private val permissionObserve = Permission("cia_n.observe", PermissionDefault.OP)
+    private val permissionObserve = Permission("gitd.observe", PermissionDefault.OP)
 
     /**
      * Главный мир, название которого указано в файле конфигурации самого сервера.
@@ -38,7 +38,7 @@ class CiaN : JavaPlugin() {
     /**
      * Конфигурация плагина.
      */
-    lateinit var ciaNConfig: CiaNConfig
+    lateinit var gitdConfig: GitdConfig
 
     /**
      * Время с момента генерации мира по-умолчанию.
@@ -49,7 +49,7 @@ class CiaN : JavaPlugin() {
     /**
      * Выводит событие в красивом виде для операторов в сети, и в читаемом машиной формате для лога сервера.
      */
-    fun pushEvent(event: BaseCiaEvent) {
+    fun pushEvent(event: BaseGitdEvent) {
         Bukkit.broadcast(event.toChatMessage(), permissionObserve.name)
         pushEventServer(event)
     }
@@ -59,29 +59,29 @@ class CiaN : JavaPlugin() {
      *
      * Например, подключение игрока или смерть.
      */
-    fun pushEventServer(event: BaseCiaEvent) {
+    fun pushEventServer(event: BaseGitdEvent) {
         logger.log(Level.INFO, event.toString())
     }
 
     override fun onEnable() {
         defaultWorld = Bukkit.getServer().worlds[0]
 
-        ConfigurationSerialization.registerClass(CiaNConfig::class.java)
-        ciaNConfig = getConfig().getSerializable(
-            "cia-n", CiaNConfig::class.java, CiaNConfig(mapOf())
-        ) ?: CiaNConfig()
+        ConfigurationSerialization.registerClass(GitdConfig::class.java)
+        gitdConfig = config.getSerializable(
+            "gitd", GitdConfig::class.java, GitdConfig(mapOf())
+        ) ?: GitdConfig()
 
         Bukkit.getPluginManager().addPermission(permissionObserve)
 
         Bukkit.getPluginManager().registerEvents(EventLogger(this), this)
 
-        pushEvent(CiaServerStartEvent(worldTime))
+        pushEvent(GitdServerStartEvent(worldTime))
     }
 
     override fun onDisable() {
-        pushEvent(CiaServerStopEvent(worldTime))
+        pushEvent(GitdServerStopEvent(worldTime))
 
-        getConfig().set("cia-n", ciaNConfig)
+        config.set("gitd", gitdConfig)
         saveConfig()
 
         HandlerList.unregisterAll(this)

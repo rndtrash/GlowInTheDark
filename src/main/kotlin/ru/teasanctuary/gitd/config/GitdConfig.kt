@@ -1,8 +1,8 @@
-package ru.teasanctuary.cia_n.config
+package ru.teasanctuary.gitd.config
 
 import org.bukkit.configuration.serialization.ConfigurationSerializable
 
-class CiaNConfig(
+class GitdConfig(
     /**
      * Задержка между сообщениями о получении игроком урона
      */
