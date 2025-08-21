@@ -108,6 +108,7 @@ class EventLogger(private val plugin: Gitd) : Listener {
         val onlinePlayers = Bukkit.getOnlinePlayers()
         for (otherPlayer in onlinePlayers) {
             if (otherPlayer == player) continue
+            if (otherPlayer.gameMode != GameMode.SURVIVAL) continue
 
             val arr = arrayOf(player.uniqueId, otherPlayer.uniqueId).sorted()
             val sortedPair = Pair(arr[0], arr[1])
@@ -118,7 +119,7 @@ class EventLogger(private val plugin: Gitd) : Listener {
                     onPlayersAway(player.uniqueId, otherPlayer.uniqueId)
                 }
             } else {
-                if (isInSameWorlds && player.location.distance(otherPlayer.location) <= plugin.gitdConfig.playerVisitPlayerDistance) {
+                if (!otherPlayer.isDead && isInSameWorlds && player.location.distance(otherPlayer.location) <= plugin.gitdConfig.playerVisitPlayerDistance) {
                     onPlayersTogether(player.uniqueId, otherPlayer.uniqueId)
                 }
             }
