@@ -13,6 +13,6 @@ data class GitdPlayerAwayFromPlayerEvent(
         val offlinePlayer = Bukkit.getOfflinePlayer(player)
         val offlineOtherPlayer = Bukkit.getOfflinePlayer(otherPlayer)
         return MiniMessage.miniMessage()
-            .deserialize("Игрок <#ffff55>${offlinePlayer.name}</#ffff55> отошёл от <#55ffff>${offlineOtherPlayer.name}</#55ffff>.")
+            .deserialize("Игрок <#ffff55>${playerTeleportMsg(offlinePlayer)}</#ffff55> отошёл от <#55ffff>${playerTeleportMsg(offlineOtherPlayer)}</#55ffff>.")
     }
 }

@@ -9,6 +9,6 @@ import java.util.*
 data class GitdPlayerLowHealthEvent(override val player: UUID, override val timestamp: Long) : GitdPlayerEvent(player, timestamp) {
     override fun toChatMessage(): Component {
         val offlineVictim = Bukkit.getOfflinePlayer(player)
-        return MiniMessage.miniMessage().deserialize("<#ffff55>У игрока <#55ff55>${offlineVictim.name}</#55ff55> низкий уровень здоровья.</#ffff55>")
+        return MiniMessage.miniMessage().deserialize("<#ffff55>У игрока <#55ff55>${playerTeleportMsg(offlineVictim)}</#55ff55> низкий уровень здоровья.</#ffff55>")
     }
 }

@@ -10,6 +10,6 @@ data class GitdPlayerVersusPlayerEvent(val attacker: UUID, override val player: 
     override fun toChatMessage(): Component {
         val offlineAttacker = Bukkit.getOfflinePlayer(attacker)
         val offlineVictim = Bukkit.getOfflinePlayer(player)
-        return MiniMessage.miniMessage().deserialize("Игрок <#ff5555>${offlineAttacker.name}</#ff5555> ударил <#55ff55>${offlineVictim.name}</#55ff55>.")
+        return MiniMessage.miniMessage().deserialize("Игрок <#ff5555>${playerTeleportMsg(offlineAttacker)}</#ff5555> ударил <#55ff55>${playerTeleportMsg(offlineVictim)}</#55ff55>.")
     }
 }

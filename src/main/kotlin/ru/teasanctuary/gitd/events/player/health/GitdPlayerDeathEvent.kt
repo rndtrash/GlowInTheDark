@@ -9,6 +9,6 @@ import java.util.*
 data class GitdPlayerDeathEvent(override val player: UUID, override val timestamp: Long) : GitdPlayerEvent(player, timestamp) {
     override fun toChatMessage(): Component {
         val offlineVictim = Bukkit.getOfflinePlayer(player)
-        return MiniMessage.miniMessage().deserialize("Игрок <#55ff55>${offlineVictim.name}</#55ff55> умер.")
+        return MiniMessage.miniMessage().deserialize("Игрок <#55ff55>${playerTeleportMsg(offlineVictim)}</#55ff55> умер.")
     }
 }

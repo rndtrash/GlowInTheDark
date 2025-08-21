@@ -11,6 +11,6 @@ data class GitdPlayerMoveWorldsEvent(val world: World, override val player: UUID
     override fun toChatMessage(): Component {
         val offlinePlayer = Bukkit.getOfflinePlayer(player)
         return MiniMessage.miniMessage()
-            .deserialize("Игрок <#55ff55>${offlinePlayer.name}</#55ff55> перешёл в мир <u>${world.name}</u>.")
+            .deserialize("Игрок <#55ff55>${playerTeleportMsg(offlinePlayer)}</#55ff55> перешёл в мир <u>${world.name}</u>.")
     }
 }
