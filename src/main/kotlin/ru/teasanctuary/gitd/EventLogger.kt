@@ -64,8 +64,9 @@ class EventLogger(private val plugin: Gitd) : Listener {
             }
         }
 
-        val maxHealth = victim.getAttribute(Attribute.GENERIC_MAX_HEALTH)
-        if (maxHealth != null && victim.health / maxHealth.value <= 0.25) {
+        val maxHealth = victim.getAttribute(Attribute.MAX_HEALTH)
+        val finalHealth = victim.health - event.finalDamage
+        if (maxHealth != null && finalHealth / maxHealth.value <= 0.25) {
             plugin.pushEvent(GitdPlayerLowHealthEvent(victim.uniqueId, timestamp))
         }
     }

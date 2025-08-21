@@ -1,14 +1,16 @@
 plugins {
-    kotlin("jvm") version "2.0.20"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("xyz.jpenilla.run-paper") version "2.3.0"
-    id("io.papermc.paperweight.userdev") version "1.7.2"
+    kotlin("jvm") version "2.2.10"
+    id("com.gradleup.shadow") version "9.0.2"
+    id("xyz.jpenilla.run-paper") version "2.3.1"
+    id("xyz.jpenilla.resource-factory-paper-convention") version "1.3.0"
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.18"
 }
 
 group = "ru.teasanctuary"
 version = "1.0-SNAPSHOT"
+description = "A plugin that logs the user interactions in a parsable format"
 
-val mcVersion = "1.21.3"
+val mcVersion = "1.21.8"
 
 repositories {
     mavenCentral()
@@ -35,23 +37,22 @@ tasks.build {
     dependsOn("shadowJar")
 }
 
-tasks.processResources {
-    val props = mapOf("version" to version)
-    inputs.properties(props)
-    filteringCharset = "UTF-8"
-    filesMatching("paper-plugin.yml") {
-        expand(props)
-    }
-}
-
 tasks.withType(xyz.jpenilla.runtask.task.AbstractRun::class) {
     javaLauncher = javaToolchains.launcherFor {
         vendor = JvmVendorSpec.JETBRAINS
         languageVersion = JavaLanguageVersion.of(21)
     }
-    jvmArgs("-XX:+AllowEnhancedClassRedefinition", "-XX:+AllowRedefinitionToAddDeleteMethods")
+    jvmArgs("-XX:+AllowEnhancedClassRedefinition")
 }
 
 tasks.runServer {
     minecraftVersion(mcVersion)
+}
+
+paperPluginYaml {
+    main = "ru.teasanctuary.gitd.Gitd"
+    prefix = "GITD"
+    authors.add("rndtrash")
+    website = "https://teasanctuary.ru"
+    apiVersion = "1.21.8"
 }
