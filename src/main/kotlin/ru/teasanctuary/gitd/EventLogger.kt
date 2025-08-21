@@ -24,6 +24,7 @@ import kotlin.math.abs
 class EventLogger(private val plugin: Gitd) : Listener {
     private val pvpTimeouts = mutableMapOf<Pair<UUID, UUID>, Long>()
     private val damageTimeouts = mutableMapOf<UUID, Long>()
+    private val lowHealthTimeouts = mutableMapOf<UUID, Long>()
     private val structureTimeouts = mutableMapOf<Pair<UUID, StructureType>, Long>()
     private val playersTogether = mutableMapOf<Pair<UUID, UUID>, Boolean>()
 
@@ -67,7 +68,11 @@ class EventLogger(private val plugin: Gitd) : Listener {
         val maxHealth = victim.getAttribute(Attribute.MAX_HEALTH)
         val finalHealth = victim.health - event.finalDamage
         if (maxHealth != null && finalHealth / maxHealth.value <= 0.25) {
-            plugin.pushEvent(GitdPlayerLowHealthEvent(victim.uniqueId, timestamp))
+            val lastTime = lowHealthTimeouts[victim.uniqueId]
+            if (lastTime == null || timestamp - lastTime > plugin.gitdConfig.playerDamageEventDelay * Gitd.REAL_SECONDS_TO_GAME_TIME) {
+                plugin.pushEvent(GitdPlayerLowHealthEvent(victim.uniqueId, timestamp))
+                lowHealthTimeouts[victim.uniqueId] = timestamp
+            }
         }
     }
 
